@@ -49,7 +49,8 @@ class User(AbstractUser):
 
     def __str__(self):
         return self.username
-
+    
+"""
     @property
     def is_admin(self):
         return self.role == self.ROLE_ADMIN
@@ -61,3 +62,32 @@ class User(AbstractUser):
     @property
     def is_moderator(self):
         return self.role == self.ROLE_MODERATOR
+"""
+
+
+class Subscription(models.Model):
+    user = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='follower',
+        verbose_name='Подписчик'
+    )
+    author = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='following',
+        verbose_name='Подписка'
+    )
+
+    class Meta:
+        verbose_name = 'Подписка'
+        verbose_name_plural = 'Подписки'
+        constraints = [
+            models.UniqueConstraint(
+                fields=['user', 'author'],
+                name='unique follow'
+            ),
+        ]
+
+    def __str__(self):
+        return f'{self.user} - {self.author}'
