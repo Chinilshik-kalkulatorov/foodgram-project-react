@@ -1,18 +1,41 @@
-from django_filters import CharFilter, FilterSet, NumberFilter
-from reviews.models import Title
+from django_filters import FilterSet
+from django_filters.filters import (CharFilter, AllValuesMultipleFilter, BooleanFilter)
+
+from recips.models import Ingredient, Recipe, Tag
 
 
-class TitleFilter(FilterSet):
-    """
-    Title
-    Поиск по полю slug жанра и категории.
-    """
-
-    genre = CharFilter(field_name='genre__slug', lookup_expr='icontains')
-    category = CharFilter(field_name='category__slug', lookup_expr='icontains')
-    name = CharFilter(field_name='name', lookup_expr='contains')
-    year = NumberFilter(field_name='year')
+class RecipesFilter(FilterSet):
+    """"Фильтр для сортировки рецептов."""""
+    tags = AllValuesMultipleFilter(field_name='tags__slug',
+                                   label='tags',
+                                   queryset=Tag.objects.all())
+    favorite = BooleanFilter(method='get_favorite')
+    shopping_cart = BooleanFilter(method='get_shopping_cart')
 
     class Meta:
-        model = Title
-        fields = ('genre', 'category', 'name', 'year')
+        model = Recipe
+        fields = ('tags', 'favorite', 'shopping_cart')
+
+    def get_favorite(self, queryset, name, value):
+        user = self.request.user
+        if value == int(True) and user.is_authenticated:
+            return queryset.filter(favorites__user=user)
+        return queryset
+
+    def get_shopping_cart(self, queryset, name, value):
+        user = self.request.user
+        if value == int(True) and user.is_authenticated:
+            return queryset.filter(shopping_cart__user=user)
+        return queryset
+
+    class Meta:
+        model = Recipe
+        fields = ('tags', 'author', 'is_favorited', 'is_in_shopping_cart')
+
+
+class IngredientFilter(FilterSet):
+    name = CharFilter(field_name='name', lookup_expr='istartswith')
+
+    class Meta:
+        model = Ingredient
+        fields = ('name',)
