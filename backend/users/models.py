@@ -1,68 +1,41 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.db.models import F, Q
+
+MAX_LEN = 150
+USER_HELP = ('Обязательно для заполнения. '
+             f'Максимум {MAX_LEN} .')
 
 
 class User(AbstractUser):
-
-    ROLE_USER = 'user'
-    ROLE_MODERATOR = 'moderator'
-    ROLE_ADMIN = 'admin'
-
-    ROLE_CHOICES = (
-        (ROLE_USER, 'Пользователь'),
-        (ROLE_MODERATOR, 'Модератор'),
-        (ROLE_ADMIN, 'Админ'),
-    )
-
-    bio = models.TextField(
-        max_length=300,
-        blank=True,
-        verbose_name='Подробности'
-    )
-    email = models.EmailField(
-        max_length=254,
-        unique=True,
-        verbose_name='Электронная почта'
-    )
-
-    role = models.CharField(
-        max_length=10,
-        choices=ROLE_CHOICES,
-        default=ROLE_USER,
-        verbose_name='Роль'
-    )
-    confirmation_code = models.CharField(
-        max_length=50,
-        blank=True,
-        verbose_name='Код для авторизации'
-    )
+    username = models.CharField('Уникальный юзернейм',
+                                max_length=MAX_LEN,
+                                blank=False,
+                                unique=True,
+                                help_text=USER_HELP)
+    password = models.CharField('Пароль',
+                                max_length=MAX_LEN,
+                                blank=False,
+                                help_text=USER_HELP)
+    email = models.CharField(max_length=254,
+                             blank=False,
+                             verbose_name='Адрес электронной почты',
+                             help_text='Обязательно для заполнения')
+    first_name = models.CharField('Имя',
+                                  max_length=MAX_LEN,
+                                  blank=False,
+                                  help_text=USER_HELP)
+    last_name = models.CharField('Фамилия',
+                                 max_length=MAX_LEN,
+                                 blank=False,
+                                 help_text=USER_HELP)
 
     class Meta:
-        verbose_name = "Пользователь"
-        verbose_name_plural = "Пользователи"
-        constraints = [
-            models.UniqueConstraint(
-                fields=['username', 'email'],
-                name='unique_user'
-            )
-        ]
+        verbose_name = 'Пользователь'
+        verbose_name_plural = 'Пользователи'
 
     def __str__(self):
-        return self.username
-    
-"""
-    @property
-    def is_admin(self):
-        return self.role == self.ROLE_ADMIN
-
-    @property
-    def is_user(self):
-        return self.role == self.ROLE_USER
-
-    @property
-    def is_moderator(self):
-        return self.role == self.ROLE_MODERATOR
-"""
+        return f'{self.username}: {self.first_name}'
 
 
 class Subscription(models.Model):
