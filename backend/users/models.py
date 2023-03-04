@@ -1,7 +1,6 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.db.models import F, Q
-
 MAX_LEN = 150
 USER_HELP = ('Обязательно для заполнения. '
              f'Максимум {MAX_LEN} .')
@@ -31,8 +30,15 @@ class User(AbstractUser):
                                  help_text=USER_HELP)
 
     class Meta:
+        db_table = 'custom_user'
+        ordering = ('username',)
         verbose_name = 'Пользователь'
         verbose_name_plural = 'Пользователи'
+        constraints = [
+            models.UniqueConstraint(
+                fields=('username', 'email'), name='unique_username_email'
+            )
+        ]
 
     def __str__(self):
         return f'{self.username}: {self.first_name}'
@@ -53,14 +59,17 @@ class Subscription(models.Model):
     )
 
     class Meta:
-        verbose_name = 'Подписка'
-        verbose_name_plural = 'Подписки'
         constraints = [
             models.UniqueConstraint(
                 fields=['user', 'author'],
-                name='unique follow'
-            ),
+                name='Вы уже подписаны на данного автора'),
+            models.CheckConstraint(
+                check=~Q(user=F('author')),
+                name='Нельзя подписаться на себя')
         ]
+        db_table = 'subscription'
+        verbose_name = 'Подписка'
+        verbose_name_plural = 'Подписки'
 
-    def __str__(self):
-        return f'{self.user} - {self.author}'
+        def __str__(self):
+            return f'{self.user} подписался на {self.author}'
