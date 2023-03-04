@@ -2,4 +2,4 @@ from django.apps import AppConfig
 
 
 class RecipsConfig(AppConfig):
-    name = 'recips'
+    name = 'recipes'

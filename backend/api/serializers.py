@@ -2,7 +2,7 @@ from django.db.models import Sum
 from django.http import HttpResponse
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet
-from recips.models import (AmountIngredients, Favorite, Ingredient, Recipe,
+from recipes.models import (AmountIngredients, Favorite, Ingredient, Recipe,
                             ShoppingCart, Tag)
 from rest_framework import filters, permissions, status, viewsets
 from rest_framework.decorators import action

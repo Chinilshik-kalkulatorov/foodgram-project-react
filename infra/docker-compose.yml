@@ -38,6 +38,6 @@ services:
       - backend
 
 volumes:
-  postgres_data:
+  db_data:
   static_value:
   media_value:
