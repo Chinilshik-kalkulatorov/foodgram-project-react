@@ -1,41 +1,32 @@
-from django_filters import FilterSet
-from django_filters.filters import (CharFilter, AllValuesMultipleFilter, BooleanFilter)
+from urllib import request
 
-from recipes.models import Ingredient, Recipe, Tag
+from django_filters.rest_framework import (AllValuesMultipleFilter,
+                                           BooleanFilter, FilterSet)
+from recipes.models import Recipe
+from rest_framework.filters import SearchFilter
 
 
 class RecipesFilter(FilterSet):
     """"Фильтр для сортировки рецептов."""""
     tags = AllValuesMultipleFilter(field_name='tags__slug',
-                                   label='tags',
-                                   queryset=Tag.objects.all())
+                                   label='tags')
     favorite = BooleanFilter(method='get_favorite')
     shopping_cart = BooleanFilter(method='get_shopping_cart')
 
     class Meta:
         model = Recipe
-        fields = ('tags', 'favorite', 'shopping_cart')
+        fields = ('author', 'tags', 'favorite',
+                  'shopping_cart')
 
     def get_favorite(self, queryset, name, value):
-        user = self.request.user
-        if value == int(True) and user.is_authenticated:
-            return queryset.filter(favorites__user=user)
-        return queryset
+        if value:
+            return queryset.filter(favorite__user=self.request.user)
+        return queryset.exclude(favorite__user=self.request.user)
 
     def get_shopping_cart(self, queryset, name, value):
-        user = self.request.user
-        if value == int(True) and user.is_authenticated:
-            return queryset.filter(shopping_cart__user=user)
-        return queryset
-
-    class Meta:
-        model = Recipe
-        fields = ('tags', 'author', 'is_favorited', 'is_in_shopping_cart')
+        if value:
+            return Recipe.objects.filter(shopping_cart__user=self.request.user)
 
 
-class IngredientFilter(FilterSet):
-    name = CharFilter(field_name='name', lookup_expr='istartswith')
-
-    class Meta:
-        model = Ingredient
-        fields = ('name',)
+class IngredientSearchFilter(SearchFilter):
+    search_param = 'name'

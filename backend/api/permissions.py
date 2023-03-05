@@ -1,17 +1,22 @@
 from rest_framework.permissions import SAFE_METHODS, BasePermission
 
 
-class IsAuthenticatedAuthorOrReadOnly(BasePermission):
-
+class AdminOrReadOnly(BasePermission):
+    """Пермишн с правами доступа для администраторов."""
     def has_permission(self, request, view):
-        return (
-            request.method in SAFE_METHODS
-            or request.user.is_authenticated
-        )
+        return (request.method in SAFE_METHODS
+                or request.user and request.user.is_superuser)
 
+
+class AuthorOrReadOnly(BasePermission):
+    """Пермишн с правами доступа для авторов."""
     def has_object_permission(self, request, view, obj):
-        return (
-            request.method in SAFE_METHODS
-            or request.user.is_authenticated
-            and obj.author == request.user
-        )
+        return (request.method in SAFE_METHODS
+                or request.user == obj.author)
+
+
+class AdminOrAuthor(BasePermission):
+    """Пермишн с правами доступа для администраторов и авторов."""
+    def has_object_permission(self, request, view, obj):
+        return (request.method in SAFE_METHODS
+                or request.user == obj.author or request.user.is_superuser)

@@ -9,11 +9,11 @@ from rest_framework.serializers import (CharField, EmailField, Field,
                                         PrimaryKeyRelatedField, ReadOnlyField,
                                         SerializerMethodField, ValidationError)
 from rest_framework.validators import UniqueValidator
-from users.models import Subscription, User
+from users.models import Follow, User
 
 
-class UserSerializer(UserCreateSerializer):
-
+class CreateUserSerializer(UserCreateSerializer):
+    """Сериализатор для регистрации пользователей."""
     username = CharField(validators=[UniqueValidator(
         queryset=User.objects.all())])
     email = EmailField(validators=[UniqueValidator(
@@ -26,29 +26,40 @@ class UserSerializer(UserCreateSerializer):
                   'password',)
         extra_kwargs = {'password': {'write_only': True}}
 
+
+class UsersSerializer(UserSerializer):
+    """Сериализатор пользователей."""
+    is_subscribed = SerializerMethodField()
+
+    class Meta:
+        model = User
+        fields = ('email', 'id', 'username',
+                  'first_name', 'last_name',
+                  'is_subscribed')
+
     def get_is_subscribed(self, obj):
         user = self.context.get('request').user
         if user.is_authenticated:
-            return Subscription.objects.filter(user=user, author=obj).exists()
+            return Follow.objects.filter(user=user, author=obj).exists()
         return False
 
 
 class TagSerializer(ModelSerializer):
-
+    """Сериализатор для тэгов."""
     class Meta:
         model = Tag
         fields = '__all__'
 
 
 class IngredientSerializer(ModelSerializer):
-
+    """Сериализатор для ингредиентов."""
     class Meta:
         model = Ingredient
         fields = '__all__'
 
 
 class IngredientCreateSerializer(ModelSerializer):
-
+    """Сериализатор для добавления ингредиентов при создании рецепта."""
     id = IntegerField()
 
     class Meta:
@@ -57,7 +68,7 @@ class IngredientCreateSerializer(ModelSerializer):
 
 
 class ReadIngredientsInRecipeSerializer(ModelSerializer):
-
+    """Сериализатор для чтения ингредиентов в рецепте."""
     id = ReadOnlyField(source='ingredients.id')
     name = ReadOnlyField(source='ingredients.name')
     measurement_unit = ReadOnlyField(source='ingredients.measurement_unit')
@@ -70,8 +81,8 @@ class ReadIngredientsInRecipeSerializer(ModelSerializer):
 
 
 class RecipeSerializer(ModelSerializer):
-
-    author = UserSerializer(read_only=True)
+    """Сериализатор для рецептов."""
+    author = UsersSerializer(read_only=True)
     ingredients = SerializerMethodField()
     tags = TagSerializer(many=True)
     is_in_shopping_cart = SerializerMethodField()
@@ -105,7 +116,7 @@ class RecipeSerializer(ModelSerializer):
 
 
 class RecipeCreateSerializer(ModelSerializer):
-
+    """Сериализатор для создания рецептов."""
     ingredients = IngredientCreateSerializer(many=True)
     tags = PrimaryKeyRelatedField(queryset=Tag.objects.all(),
                                   many=True)
@@ -173,7 +184,7 @@ class RecipeCreateSerializer(ModelSerializer):
 
 
 class RecipeForFollowersSerializer(ModelSerializer):
-
+    """Сериализатор для вывода рецептов в избранном и списке покупок."""
     class Meta:
         model = Recipe
         fields = ('id', 'name',
@@ -181,6 +192,7 @@ class RecipeForFollowersSerializer(ModelSerializer):
 
 
 class RecipeFollowUserField(Field):
+    """Сериализатор для вывода рецептов в подписках."""
 
     def get_attribute(self, instance):
         return Recipe.objects.filter(author=instance.author)
@@ -200,7 +212,7 @@ class RecipeFollowUserField(Field):
 
 
 class SubscriptionSerializer(ModelSerializer):
-
+    """Сериализатор для подписок."""
     recipes = RecipeFollowUserField()
     recipes_count = SerializerMethodField(read_only=True)
     id = ReadOnlyField(source='author.id')
@@ -221,4 +233,4 @@ class SubscriptionSerializer(ModelSerializer):
         return Recipe.objects.filter(author=obj.author).count()
 
     def get_is_subscribed(self, obj):
-        return Subscription.objects.filter(user=obj.user, author=obj.author).exists()
+        return Follow.objects.filter(user=obj.user, author=obj.author).exists()
