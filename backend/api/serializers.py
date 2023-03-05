@@ -26,17 +26,6 @@ class UserSerializer(UserCreateSerializer):
                   'password',)
         extra_kwargs = {'password': {'write_only': True}}
 
-
-class UsersSerializer(UserSerializer):
-
-    is_subscribed = SerializerMethodField()
-
-    class Meta:
-        model = User
-        fields = ('email', 'id', 'username',
-                  'first_name', 'last_name',
-                  'is_subscribed')
-
     def get_is_subscribed(self, obj):
         user = self.context.get('request').user
         if user.is_authenticated:
@@ -82,7 +71,7 @@ class ReadIngredientsInRecipeSerializer(ModelSerializer):
 
 class RecipeSerializer(ModelSerializer):
 
-    author = UsersSerializer(read_only=True)
+    author = UserSerializer(read_only=True)
     ingredients = SerializerMethodField()
     tags = TagSerializer(many=True)
     is_in_shopping_cart = SerializerMethodField()
