@@ -17,7 +17,6 @@ class Tag(models.Model):
                             unique=True,)
 
     class Meta:
-        db_table = 'tag'
         verbose_name = 'Тэг'
         verbose_name_plural = 'Тэги'
         ordering = ('name', )
@@ -35,7 +34,6 @@ class Ingredient(models.Model):
                                         help_text='Укажите единицу измерения')
 
     class Meta:
-        db_table = 'ingredient'
         verbose_name = 'Ингредиент'
         verbose_name_plural = 'Ингредиенты'
         ordering = ('name', )
@@ -69,7 +67,6 @@ class Recipe(models.Model):
                   message='Укажите время приготовления блюда больше 0'),)
 
     class Meta:
-        db_table = 'recipe'
         verbose_name = 'Рецепт'
         verbose_name_plural = 'Рецепты'
 
@@ -91,15 +88,13 @@ class AmountIngredients(models.Model):
                                     )
     amount = models.PositiveSmallIntegerField(
         verbose_name='Количество',
-        default=1,
+        default=0,
         validators=(MinValueValidator(1,
                     message='Введите количество больше 0.'),))
 
     class Meta:
-        db_table = 'ingredient_amount_recipe'
         verbose_name = 'Ингридиент'
         verbose_name_plural = 'Количество ингридиентов'
-        
 
     def __str__(self) -> str:
         return f'{self.amount} {self.ingredients}'
@@ -109,24 +104,23 @@ class Favorite(models.Model):
     """Модель списка избранного."""
     user = models.ForeignKey(User,
                              on_delete=models.CASCADE,
-                             verbose_name='Юзер',
+                             verbose_name='Пользователь',
                              related_name='favorite')
     recipe = models.ForeignKey(Recipe,
                                on_delete=models.CASCADE,
-                               verbose_name='Понравившийся рецепт',
+                               verbose_name='Рецепт',
                                related_name='favorite')
 
     class Meta:
-        db_table = 'favorite'
-        verbose_name = 'Избранное'
-        verbose_name_plural = 'Избранные'
+        verbose_name = 'Избранный рецепт'
+        verbose_name_plural = 'Избранные рецепты'
 
 
 class ShoppingCart(models.Model):
     """Модель списка избранного."""
     user = models.ForeignKey(User,
                              on_delete=models.CASCADE,
-                             verbose_name='Юзер',
+                             verbose_name='Пользователь',
                              related_name='shopping_cart')
     recipe = models.ForeignKey(Recipe,
                                on_delete=models.CASCADE,
@@ -134,5 +128,4 @@ class ShoppingCart(models.Model):
                                related_name='shopping_cart')
 
     class Meta:
-        db_table = 'shopping_cart'
         verbose_name = 'Список покупок'

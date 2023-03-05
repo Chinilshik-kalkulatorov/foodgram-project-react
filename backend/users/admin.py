@@ -1,15 +1,20 @@
 from django.contrib import admin
+from django.contrib.admin import register
 
-from .models import Subscription, User
-
-
-class SubscriptionAdmin(admin.ModelAdmin):
-    list_display = ('user', 'author')
+from .models import Follow, User
 
 
-class UserAdmin(admin.ModelAdmin):
-    list_filter = ('email', 'username')
+@register(User)
+class PersonAdmin(admin.ModelAdmin):
+    list_display = ('username', 'first_name',
+                    'last_name', 'email', 'password')
+    list_filter = ('first_name', 'email',)
+    save_on_top = True
 
 
-admin.site.register(User, UserAdmin)
-admin.site.register(Subscription, SubscriptionAdmin)
+@register(Follow)
+class FollowAdmin(admin.ModelAdmin):
+    list_display = ('author', 'user',)
+    search_fields = ('user', 'author',)
+    list_per_page = 20
+    save_on_top = True
