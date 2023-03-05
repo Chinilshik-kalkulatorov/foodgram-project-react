@@ -14,13 +14,12 @@ from users.models import Subscription, User
 from .filters import IngredientFilter, RecipesFilter
 from .pagination import LimitPagePagination
 from .permissions import IsAuthenticatedAuthorOrReadOnly
-from .serializers import (FollowSerializer, IngredientSerializer,
+from .serializers import (SubscriptionSerializer, IngredientSerializer,
                           RecipeCreateSerializer, RecipeForFollowersSerializer,
                           RecipeSerializer, TagSerializer, UsersSerializer)
 
 
 class UsersViewSet(UserViewSet):
-    """Вьюсет для модели пользователей."""
     queryset = User.objects.all()
     serializer_class = UsersSerializer
     pagination_class = LimitPagePagination
@@ -35,7 +34,7 @@ class UsersViewSet(UserViewSet):
                             status=status.HTTP_400_BAD_REQUEST)
         follow = Subscription.objects.get_or_create(user=self.request.user,
                                               author=follower)
-        serializer = FollowSerializer(follow[0])
+        serializer = SubscriptionSerializer(follow[0])
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     def unsubscribed(self, serializer, id=None):
@@ -57,12 +56,11 @@ class UsersViewSet(UserViewSet):
     def subscriptions(self, serializer):
         following = Subscription.objects.filter(user=self.request.user)
         pages = self.paginate_queryset(following)
-        serializer = FollowSerializer(pages, many=True)
+        serializer = SubscriptionSerializer(pages, many=True)
         return self.get_paginated_response(serializer.data)
 
 
 class TagViewSet(viewsets.ModelViewSet):
-    """Вьюсет для модели тэгов."""
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
     pagination_class = None
@@ -70,7 +68,6 @@ class TagViewSet(viewsets.ModelViewSet):
 
 
 class IngredientViewSet(viewsets.ModelViewSet):
-    """Вьюсет для модели ингредиентов."""
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
     permission_classes = (IsAuthenticatedAuthorOrReadOnly,)
@@ -80,7 +77,6 @@ class IngredientViewSet(viewsets.ModelViewSet):
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
-    """Вьюсет для рецептов."""
     queryset = Recipe.objects.all()
     permission_classes = (IsAuthenticatedAuthorOrReadOnly,)
     pagination_class = LimitPagePagination
