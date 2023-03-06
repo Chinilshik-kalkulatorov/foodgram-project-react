@@ -4,7 +4,7 @@ from users.models import User
 
 
 class Tag(models.Model):
-    """Модель для тэгов."""
+
     name = models.CharField('Тэг',
                             max_length=200,
                             unique=True,)
@@ -27,7 +27,7 @@ class Tag(models.Model):
 
 
 class Ingredient(models.Model):
-    """Модель для ингредиентов."""
+
     name = models.CharField('Ингридиент',
                             max_length=200,)
     measurement_unit = models.CharField('Единица измерения',
@@ -45,7 +45,7 @@ class Ingredient(models.Model):
 
 
 class Recipe(models.Model):
-    """Модель рецептов."""
+
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
@@ -77,8 +77,8 @@ class Recipe(models.Model):
         return f'{self.name}'
 
 
-class AmountIngredients(models.Model):
-    """Модель, описывающая количество ингридиентов."""
+class AmountIngredient(models.Model):
+
     recipe = models.ForeignKey(Recipe,
                                on_delete=models.CASCADE,
                                verbose_name='Рецепт',
@@ -106,7 +106,7 @@ class AmountIngredients(models.Model):
 
 
 class Favorite(models.Model):
-    """Модель списка избранного."""
+
     user = models.ForeignKey(User,
                              on_delete=models.CASCADE,
                              verbose_name='Юзер',
@@ -123,7 +123,7 @@ class Favorite(models.Model):
 
 
 class ShoppingCart(models.Model):
-    """Модель списка избранного."""
+
     user = models.ForeignKey(User,
                              on_delete=models.CASCADE,
                              verbose_name='Юзер',

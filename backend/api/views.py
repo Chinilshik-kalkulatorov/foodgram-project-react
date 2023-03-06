@@ -2,20 +2,20 @@ from django.db.models import Sum
 from django.http import HttpResponse
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet
-from recipes.models import (AmountIngredients, Favorite, Ingredient, Recipe,
+from recipes.models import (AmountIngredient, Favorite, Ingredient, Recipe,
                             ShoppingCart, Tag)
 from rest_framework import filters, permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
-from users.models import Follow, User
+from users.models import Subscription, User
 
 from .filters import IngredientSearchFilter, RecipesFilter
 from .pagination import LimitPagePagination
 from .permissions import AdminOrAuthor, AdminOrReadOnly
 from .serializers import (SubscriptionSerializer, IngredientSerializer,
-                          RecipeCreateSerializer, RecipeForFollowersSerializer,
+                          RecipeCreateSerializer, RecipeForSubscriptionersSerializer,
                           RecipeSerializer, TagSerializer, UsersSerializer)
 
 
@@ -29,19 +29,19 @@ class UsersViewSet(UserViewSet):
     permission_classes = (AllowAny, )
 
     def subscribed(self, serializer, id=None):
-        follower = get_object_or_404(User, id=id)
-        if self.request.user == follower:
+        Subscriptioner = get_object_or_404(User, id=id)
+        if self.request.user == Subscriptioner:
             return Response({'message': 'Нельзя подписаться на себя'},
                             status=status.HTTP_400_BAD_REQUEST)
-        follow = Follow.objects.get_or_create(user=self.request.user,
-                                              author=follower)
-        serializer = SubscriptionSerializer(follow[0])
+        Subscription = Subscription.objects.get_or_create(user=self.request.user,
+                                              author=Subscriptioner)
+        serializer = SubscriptionSerializer(Subscription[0])
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     def unsubscribed(self, serializer, id=None):
-        follower = get_object_or_404(User, id=id)
-        Follow.objects.filter(user=self.request.user,
-                              author=follower).delete()
+        Subscriptioner = get_object_or_404(User, id=id)
+        Subscription.objects.filter(user=self.request.user,
+                              author=Subscriptioner).delete()
         return Response({'message': 'Вы успешно отписаны'},
                         status=status.HTTP_200_OK)
 
@@ -55,8 +55,8 @@ class UsersViewSet(UserViewSet):
     @action(detail=False, methods=['get'],
             permission_classes=[permissions.IsAuthenticated])
     def subscriptions(self, serializer):
-        following = Follow.objects.filter(user=self.request.user)
-        pages = self.paginate_queryset(following)
+        Subscriptioning = Subscription.objects.filter(user=self.request.user)
+        pages = self.paginate_queryset(Subscriptioning)
         serializer = SubscriptionSerializer(pages, many=True)
         return self.get_paginated_response(serializer.data)
 
@@ -97,56 +97,37 @@ class RecipeViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(author=self.request.user)
 
-    def perform_update(self, serializer):
-        serializer.save(author=self.request.user)
-
-    @action(detail=True, methods=['post', 'delete'],
-            permission_classes=[IsAuthenticated])
-    def favorite(self, request, pk):
+    def add_to_favorite_or_shopping_cart(self, request, pk, model_class, success_message):
         recipe = get_object_or_404(Recipe, pk=pk)
         if request.method == 'POST':
-            Favorite.objects.create(user=request.user,
-                                    recipe=recipe)
-            serializer = RecipeForFollowersSerializer(recipe)
-            return Response(data=serializer.data,
-                            status=status.HTTP_201_CREATED)
-        deleted = get_object_or_404(Favorite,
-                                    user=request.user,
-                                    recipe=recipe)
+            model_class.objects.create(user=request.user, recipe=recipe)
+            serializer = RecipeForSubscriptionersSerializer(recipe)
+            return Response(data=serializer.data, status=status.HTTP_201_CREATED)
+        deleted = get_object_or_404(model_class, user=request.user, recipe=recipe)
         deleted.delete()
-        return Response({'message': 'Рецепт успешно удален из избранного'},
-                        status=status.HTTP_200_OK)
+        return Response({'message': success_message}, status=status.HTTP_200_OK)
 
-    @action(detail=True, methods=['post', 'delete'],
-            permission_classes=[IsAuthenticated])
+    @action(detail=True, methods=['post', 'delete'], permission_classes=[IsAuthenticated]) 
+    def favorite(self, request, pk): 
+        return self.add_to_favorite_or_shopping_cart(request, pk, Favorite, 'Рецепт успешно удален из избранного')
+ 
+    @action(detail=True, methods=['post', 'delete'], permission_classes=[IsAuthenticated]) 
     def shopping_cart(self, request, pk):
-        recipe = get_object_or_404(Recipe, pk=pk)
-        if request.method == 'POST':
-            ShoppingCart.objects.create(user=request.user,
-                                        recipe=recipe)
-            serializer = RecipeForFollowersSerializer(recipe)
-            return Response(data=serializer.data,
-                            status=status.HTTP_201_CREATED)
-        deleted = get_object_or_404(ShoppingCart,
-                                    user=request.user,
-                                    recipe=recipe)
-        deleted.delete()
-        return Response({'message': 'Рецепт успешно удален из списка покупок'},
-                        status=status.HTTP_200_OK)
+        return self.add_to_favorite_or_shopping_cart(request, pk, ShoppingCart, 'Рецепт успешно удален из списка покупок')
 
     @action(detail=False, methods=['get'])
     def download_shopping_cart(self, request):
         user = request.user
-        ingredients = AmountIngredients.objects.filter(
+        ingredients = AmountIngredient.objects.filter(
             recipe__shopping_cart__user=user).values(
                 'ingredients__name',
                 'ingredients__measurement_unit').annotate(
-                    amount=Sum('amount'))
+                    mamamount=Sum('amount'))
         data = ingredients.values_list('ingredients__name',
                                        'ingredients__measurement_unit',
                                        'amount')
         shopping_cart = 'Список покупок:\n'
-        for name, measure, amount in data:
-            shopping_cart += (f'{name.capitalize()} {amount} {measure},\n')
+        for name, measure, mamamount in data:
+            shopping_cart += (f'{name.capitalize()} {mamamount} {measure},\n')
         response = HttpResponse(shopping_cart, content_type='text/plain')
         return response
