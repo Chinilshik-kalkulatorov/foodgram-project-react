@@ -58,7 +58,7 @@ class Recipe(models.Model):
     text = models.TextField('Описание',)
     ingredients = models.ManyToManyField(Ingredient,
                                          verbose_name='Список ингредиентов',
-                                         through='AmountIngredients',
+                                         through='AmountIngredient',
                                          related_name='recipes',)
     tags = models.ManyToManyField(Tag,
                                   related_name='recipes',
@@ -99,6 +99,7 @@ class AmountIngredient(models.Model):
         db_table = 'ingredient_amount_recipe'
         verbose_name = 'Ингридиент'
         verbose_name_plural = 'Количество ингридиентов'
+        unique_together = ('recipe', 'ingredients', 'amount')
         
 
     def __str__(self) -> str:
@@ -120,6 +121,7 @@ class Favorite(models.Model):
         db_table = 'favorite'
         verbose_name = 'Избранное'
         verbose_name_plural = 'Избранные'
+        unique_together = ('user', 'recipe')
 
 
 class ShoppingCart(models.Model):
@@ -136,3 +138,4 @@ class ShoppingCart(models.Model):
     class Meta:
         db_table = 'shopping_cart'
         verbose_name = 'Список покупок'
+        unique_together = ('user', 'recipe')

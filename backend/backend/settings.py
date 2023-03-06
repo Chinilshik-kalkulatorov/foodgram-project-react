@@ -133,7 +133,7 @@ MEDIA_ROOT = BASE_DIR.joinpath('media')
 
 DJOSER = {
     'SERIALIZERS': {
-        'user': 'api.serializers.CustomUserReadSerializer',
+        'user': 'api.serializers.UsersSerializer',
     },
     'PERMISSIONS': {
         'user': ['rest_framework.permissions.IsAuthenticated'],
