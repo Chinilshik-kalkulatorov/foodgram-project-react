@@ -11,8 +11,7 @@ from rest_framework.validators import UniqueValidator
 from recipes.models import (AmountIngredient, Favorite, Ingredient, Recipe,
                             ShoppingCart, Tag)
 from users.models import Subscription, User
-
-
+from .fields import RecipeSubscribeUserField
 class CreateUserSerializer(UserCreateSerializer):
 
     username = CharField(validators=[UniqueValidator(
@@ -170,20 +169,17 @@ class RecipeCreateSerializer(ModelSerializer):
         return cooking_time
 
     def validate_ingredients(self, ingredients):
+        ingredients_ids = [ingredient.get('id') for ingredient in ingredients]
+
         for ingredient in ingredients:
             if int(ingredient['amount']) <= 0:
                 raise ValidationError(
                     'Количество ингредиентов должно быть больше 0')
-        return ingredients
 
-    def validate_dubl(self, data):
-        ingredients_data = data.get('ingredients')
-        ingredients_ids = [ingredient.get('id') for ingredient in ingredients_data]
-        
         if len(ingredients_ids) != len(set(ingredients_ids)):
             raise ValidationError('Список ингредиентов содержит дубликаты')
-        
-        return data
+
+        return ingredients
 
 class RecipeForSubscriptionersSerializer(ModelSerializer):
 
@@ -193,28 +189,9 @@ class RecipeForSubscriptionersSerializer(ModelSerializer):
                   'image', 'cooking_time')
 
 
-class RecipeFollowUserField(Field):
-
-    def get_attribute(self, instance):
-        return Recipe.objects.filter(author=instance.author)
-
-    def to_representation(self, recipes_list):
-        recipes_data = []
-        for recipes in recipes_list:
-            recipes_data.append(
-                {
-                    "id": recipes.id,
-                    "name": recipes.name,
-                    "image": recipes.image.url,
-                    "cooking_time": recipes.cooking_time,
-                }
-            )
-        return recipes_data
-
-
 class SubscriptionSerializer(ModelSerializer):
     """Сериализатор для подписок."""
-    recipes = RecipeFollowUserField()
+    recipes = RecipeSubscribeUserField()
     recipes_count = SerializerMethodField(read_only=True)
     id = ReadOnlyField(source='author.id')
     email = ReadOnlyField(source='author.email')
