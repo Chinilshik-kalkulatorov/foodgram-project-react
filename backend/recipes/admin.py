@@ -2,7 +2,8 @@ from django.contrib import admin
 from django.contrib.admin import register
 from django.contrib.auth.models import Group
 
-from .models import AmountIngredient, Favorite, Ingredient, Recipe, ShoppingCart, Tag
+from .models import (AmountIngredient, Favorite, Ingredient, Recipe,
+                     ShoppingCart, Tag)
 
 admin.site.unregister(Group)
 

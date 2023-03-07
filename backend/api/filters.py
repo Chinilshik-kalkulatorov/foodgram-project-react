@@ -2,8 +2,9 @@ from urllib import request
 
 from django_filters.rest_framework import (AllValuesMultipleFilter,
                                            BooleanFilter, FilterSet)
-from recipes.models import Recipe
 from rest_framework.filters import SearchFilter
+
+from recipes.models import Recipe
 
 
 class RecipesFilter(FilterSet):
@@ -27,6 +28,7 @@ class RecipesFilter(FilterSet):
         if value:
             return Recipe.objects.filter(shopping_cart__user=self.request.user)
         return queryset.exclude(shopping_cart__user=self.request.user)    
+
 
 class IngredientSearchFilter(SearchFilter):
     search_param = 'name'

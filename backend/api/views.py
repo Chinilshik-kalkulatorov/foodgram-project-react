@@ -2,21 +2,23 @@ from django.db.models import Sum
 from django.http import HttpResponse
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet
-from recipes.models import (AmountIngredient, Favorite, Ingredient, Recipe,
-                            ShoppingCart, Tag)
 from rest_framework import filters, permissions, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
+
+from recipes.models import (AmountIngredient, Favorite, Ingredient, Recipe,
+                            ShoppingCart, Tag)
 from users.models import Subscription, User
 
 from .filters import IngredientSearchFilter, RecipesFilter
 from .pagination import LimitPagePagination
 from .permissions import AdminOrAuthor, AdminOrReadOnly
-from .serializers import (SubscriptionSerializer, IngredientSerializer,
-                          RecipeCreateSerializer, RecipeForSubscriptionersSerializer,
-                          RecipeSerializer, TagSerializer, UsersSerializer)
+from .serializers import (IngredientSerializer, RecipeCreateSerializer,
+                          RecipeForSubscriptionersSerializer, RecipeSerializer,
+                          SubscriptionSerializer, TagSerializer,
+                          UsersSerializer)
 
 
 class UsersViewSet(UserViewSet):
@@ -122,12 +124,12 @@ class RecipeViewSet(viewsets.ModelViewSet):
             recipe__shopping_cart__user=user).values(
                 'ingredients__name',
                 'ingredients__measurement_unit').annotate(
-                    mamamount=Sum('amount'))
+                    total_amount=Sum('amount'))
         data = ingredients.values_list('ingredients__name',
                                        'ingredients__measurement_unit',
-                                       'amount')
+                                       'total_amount')
         shopping_cart = 'Список покупок:\n'
-        for name, measure, mamamount in data:
-            shopping_cart += (f'{name.capitalize()} {mamamount} {measure},\n')
+        for name, measure, amount in data:
+            shopping_cart += (f'{name.capitalize()} {amount} {measure},\n')
         response = HttpResponse(shopping_cart, content_type='text/plain')
         return response
