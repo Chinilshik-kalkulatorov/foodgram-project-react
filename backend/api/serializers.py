@@ -2,16 +2,18 @@ from django.db.models import F
 from django.shortcuts import get_object_or_404
 from djoser.serializers import UserCreateSerializer, UserSerializer
 from drf_extra_fields.fields import Base64ImageField
+from recipes.models import (AmountIngredient, Favorite, Ingredient, Recipe,
+                            ShoppingCart, Tag)
 from rest_framework.serializers import (CharField, EmailField, Field,
                                         IntegerField, ModelSerializer,
                                         PrimaryKeyRelatedField, ReadOnlyField,
                                         SerializerMethodField, ValidationError)
 from rest_framework.validators import UniqueValidator
-
-from recipes.models import (AmountIngredient, Favorite, Ingredient, Recipe,
-                            ShoppingCart, Tag)
 from users.models import Subscription, User
+
 from .fields import RecipeSubscribeUserField
+
+
 class CreateUserSerializer(UserCreateSerializer):
 
     username = CharField(validators=[UniqueValidator(
