@@ -84,7 +84,7 @@ class ReadIngredientsInRecipeSerializer(ModelSerializer):
 class RecipeSerializer(ModelSerializer): 
 
     author = UsersSerializer(read_only=True)
-    ingredients = SerializerMethodField()
+    ingredients = ReadIngredientsInRecipeSerializer(many=True)
     tags = TagSerializer(many=True)
     is_in_shopping_cart = SerializerMethodField()
     is_favorited = SerializerMethodField()
@@ -109,6 +109,7 @@ class RecipeSerializer(ModelSerializer):
             return Favorite.objects.filter(
                 user=user, recipe=obj).exists()
         return False
+
 
 class RecipeCreateSerializer(ModelSerializer):
 
