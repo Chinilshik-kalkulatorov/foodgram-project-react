@@ -4,7 +4,7 @@ from djoser.serializers import UserCreateSerializer, UserSerializer
 from drf_extra_fields.fields import Base64ImageField
 from recipes.models import (AmountIngredient, Favorite, Ingredient, Recipe,
                             ShoppingCart, Tag)
-from rest_framework.serializers import (CharField, EmailField, Field,
+from rest_framework.serializers import (CharField, EmailField,
                                         IntegerField, ModelSerializer,
                                         PrimaryKeyRelatedField, ReadOnlyField,
                                         SerializerMethodField, ValidationError)
@@ -81,7 +81,7 @@ class ReadIngredientsInRecipeSerializer(ModelSerializer):
                   'amount',)
 
 
-class RecipeSerializer(ModelSerializer): 
+class RecipeSerializer(ModelSerializer):
 
     author = UsersSerializer(read_only=True)
     ingredients = ReadIngredientsInRecipeSerializer(many=True)
@@ -184,6 +184,7 @@ class RecipeCreateSerializer(ModelSerializer):
 
         return ingredients
 
+
 class RecipeForSubscriptionersSerializer(ModelSerializer):
 
     class Meta:
@@ -214,4 +215,5 @@ class SubscriptionSerializer(ModelSerializer):
         return Recipe.objects.filter(author=obj.author).count()
 
     def get_is_subscribed(self, obj):
-        return Subscription.objects.filter(user=obj.user, author=obj.author).exists()
+        return Subscription.objects.filter(user=obj.user,
+                                           author=obj.author).exists()
