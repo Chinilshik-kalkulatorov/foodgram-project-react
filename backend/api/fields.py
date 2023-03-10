@@ -1,5 +1,4 @@
 from rest_framework.fields import Field
-from recipes.models import Recipe
 
 from recipes.models import Recipe
 

@@ -1,8 +1,8 @@
 from django_filters.rest_framework import AllValuesMultipleFilter, BooleanFilter, FilterSet
 from rest_framework.filters import SearchFilter
 from recipes.models import Recipe
- 
- 
+
+
 class RecipesFilter(FilterSet):
 
     tags = AllValuesMultipleFilter(field_name='tags__slug', label='tags')
@@ -21,7 +21,7 @@ class RecipesFilter(FilterSet):
     def get_shopping_cart(self, queryset, name, value):
         if value:
             return Recipe.objects.filter(shopping_cart__user=self.request.user)
-        return queryset.exclude(shopping_cart__user=self.request.user)    
+        return queryset.exclude(shopping_cart__user=self.request.user)
 
 
 class IngredientSearchFilter(SearchFilter):

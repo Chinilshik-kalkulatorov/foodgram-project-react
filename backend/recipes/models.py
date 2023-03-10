@@ -126,6 +126,7 @@ class Favorite(models.Model):
                        fields=['user', 'recipe'],
                        name='unique_favorite_amount',)]
 
+
 class ShoppingCart(models.Model):
 
     user = models.ForeignKey(User,
