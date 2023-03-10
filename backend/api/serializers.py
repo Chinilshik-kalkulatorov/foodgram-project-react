@@ -184,6 +184,7 @@ class RecipeCreateSerializer(ModelSerializer):
 
         return ingredients
 
+
 class RecipeForSubscriptionersSerializer(ModelSerializer):
 
     class Meta:

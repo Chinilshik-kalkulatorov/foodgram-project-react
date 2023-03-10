@@ -1,5 +1,5 @@
-from recipes.models import Recipe
 from rest_framework.fields import Field
+from recipes.models import Recipe
 
 
 class RecipeSubscribeUserField(Field):
