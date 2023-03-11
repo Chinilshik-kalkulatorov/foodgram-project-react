@@ -42,7 +42,7 @@ class UsersViewSet(UserViewSet):
     def unsubscribed(self, serializer, id=None):
         Subscriptioner = get_object_or_404(User, id=id)
         Subscription.objects.filter(user=self.request.user,
-                              author=Subscriptioner).delete()
+                                    author=Subscriptioner).delete()
         return Response({'message': 'Вы успешно отписаны'},
                         status=status.HTTP_200_OK)
 
@@ -108,11 +108,11 @@ class RecipeViewSet(viewsets.ModelViewSet):
         deleted.delete()
         return Response({'message': success_message}, status=status.HTTP_200_OK)
 
-    @action(detail=True, methods=['post', 'delete'], permission_classes=[IsAuthenticated]) 
-    def favorite(self, request, pk): 
+    @action(detail=True, methods=['post', 'delete'], permission_classes=[IsAuthenticated])
+    def favorite(self, request, pk):
         return self.add_to_favorite_or_shopping_cart(request, pk, Favorite, 'Рецепт успешно удален из избранного')
- 
-    @action(detail=True, methods=['post', 'delete'], permission_classes=[IsAuthenticated]) 
+
+    @action(detail=True, methods=['post', 'delete'], permission_classes=[IsAuthenticated])
     def shopping_cart(self, request, pk):
         return self.add_to_favorite_or_shopping_cart(request, pk, ShoppingCart, 'Рецепт успешно удален из списка покупок')
 
