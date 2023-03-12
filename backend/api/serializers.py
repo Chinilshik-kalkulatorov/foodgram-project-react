@@ -11,7 +11,6 @@ from rest_framework.validators import UniqueValidator
 from users.models import Subscription, User
 from recipes.models import (AmountIngredient, Favorite, Ingredient, Recipe,
                             ShoppingCart, Tag)
-
 from .fields import RecipeSubscribeUserField
 
 
