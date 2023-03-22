@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.contrib.admin import register
 from django.contrib.auth.models import Group
 
-from .models import (AmountIngredients, Favorite, Ingredient, Recipe,
+from .models import (AmountIngredient, Favorite, Ingredient, Recipe,
                      ShoppingCart, Tag)
 
 admin.site.unregister(Group)
@@ -13,7 +13,7 @@ class IngredientRecipeInLine(admin.TabularInline):
     extra = 3
 
 
-@register(Tag, AmountIngredients)
+@register(Tag, AmountIngredient)
 class OtherAdmin(admin.ModelAdmin):
     pass
 
@@ -31,6 +31,7 @@ class RecipeAdmin(admin.ModelAdmin):
     list_filter = ('name', 'author__username', 'tags__name')
     save_on_top = True
     inlines = (IngredientRecipeInLine, )
+    filter_horizontal = ('tags', )
 
 
 @register(ShoppingCart)
