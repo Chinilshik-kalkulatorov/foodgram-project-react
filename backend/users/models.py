@@ -20,7 +20,8 @@ class User(AbstractUser):
     email = models.CharField(max_length=254,
                              blank=False,
                              verbose_name='Адрес электронной почты',
-                             help_text='Обязательно для заполнения')
+                             help_text='Обязательно для заполнения',
+                             unique=True)
     first_name = models.CharField('Имя',
                                   max_length=MAX_LEN,
                                   blank=False,
@@ -40,6 +41,9 @@ class User(AbstractUser):
                 fields=('username', 'email'), name='unique_username_email'
             )
         ]
+
+    USERNAME_FIELD = 'email'
+    REQUIRED_FIELDS = ['username', 'password', 'first_name', 'last_name']
 
     def __str__(self):
         return f'{self.username}: {self.first_name}'

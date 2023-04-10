@@ -3,6 +3,7 @@ services:
 
   frontend:
     image: adkhamov/foodgram-front:latest
+    # build: ../backend
     volumes:
       - ../frontend/:/app/result_build/
 
@@ -14,7 +15,8 @@ services:
       - ./.env
 
   backend:
-    image: adkhamov/foodgram:latest
+    # image: adkhamov/foodgram:latest
+    build: ../backend
     restart: always
     volumes:
       - static_value:/app/static/

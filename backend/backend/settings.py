@@ -14,14 +14,14 @@ SECRET_KEY = os.getenv(
     default='django-insecure-^fbr$vu0g9aqhy1ymvo-fgdl4me^u!i$3zrq%_p#+^f%1v9@_z'
 )
 
-DEBUG = os.getenv('DEBUG', default=False)
+DEBUG = os.getenv('DEBUG', default=True)
 
 ALLOWED_HOSTS = os.getenv(
     'SERVERNAMES', default='*'
 ).split(',')
 
 CSRF_TRUSTED_ORIGINS = os.getenv(
-    'CSRF_TRUSTED_ORIGINS', default='http://foodfoodgram.sytes.net'
+        'CSRF_TRUSTED_ORIGINS', default='http://84.201.162.233'
 ).split(',')
 
 INSTALLED_APPS = [
