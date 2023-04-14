@@ -1,8 +1,7 @@
-from django.contrib.auth import get_user_model
 from django.core.validators import MinValueValidator
 from django.db import models
 
-User = get_user_model()
+from users.models import User
 
 
 class Tag(models.Model):
@@ -41,9 +40,7 @@ class Ingredient(models.Model):
 
 
 class Recipe(models.Model):
-    name = models.CharField('Название рецепта', max_length=200)
-    image = models.ImageField('Изображение', upload_to='recipes/images/')
-    text = models.TextField('Описание')
+
     author = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
@@ -51,32 +48,24 @@ class Recipe(models.Model):
         related_name='recipes',
         verbose_name='Автор',
     )
-    ingredients = models.ManyToManyField(
-        Ingredient,
-        verbose_name='Ингредиенты',
-        related_name='recipes',
-        through='IngredientRecipe',
-    )
-    tags = models.ManyToManyField(
-        Tag,
-        verbose_name='Теги',
-        related_name='recipes'
-    )
-    cooking_time = models.PositiveIntegerField(
-        'Время приготовления',
-        validators=(
-            MinValueValidator(
-                1, message='Время приготовления должно быть больше 1 минуты'
-            ),
-        ),
-    )
-    pub_date = models.DateTimeField(
-        verbose_name='Дата публикации',
-        auto_now_add=True
-    )
+    name = models.CharField('Название',
+                            max_length=200,)
+    image = models.ImageField('Картинка',)
+    text = models.TextField('Описание',)
+    ingredients = models.ManyToManyField(Ingredient,
+                                         verbose_name='Список ингредиентов',
+                                         through='AmountIngredient',
+                                         related_name='recipes',)
+    tags = models.ManyToManyField(Tag,
+                                  related_name='recipes',
+                                  verbose_name='Тег',)
+    cooking_time = models.PositiveSmallIntegerField(
+        'Время приготовления (в минутах)')
+    validators = (MinValueValidator(1,
+                  message='Укажите время приготовления блюда больше 0'),)
 
     class Meta:
-        ordering = ('-pub_date',)
+        db_table = 'recipe'
         verbose_name = 'Рецепт'
         verbose_name_plural = 'Рецепты'
 
@@ -84,19 +73,18 @@ class Recipe(models.Model):
         return f'{self.name} ({self.author})'
 
 
-class IngredientRecipe(models.Model):
-    recipe = models.ForeignKey(
-        Recipe,
-        on_delete=models.CASCADE,
-        related_name='ingredient_to_recipe',
-        verbose_name='Рецепт',
-    )
-    ingredient = models.ForeignKey(
-        Ingredient,
-        on_delete=models.CASCADE,
-        related_name='ingredient_to_recipe',
-        verbose_name='Ингредиент',
-    )
+class AmountIngredient(models.Model):
+
+    recipe = models.ForeignKey(Recipe,
+                               on_delete=models.CASCADE,
+                               verbose_name='Рецепт',
+                               related_name='amount_ingredient',
+                               )
+    ingredients = models.ForeignKey(Ingredient,
+                                    on_delete=models.CASCADE,
+                                    verbose_name='Ингредиент',
+                                    related_name='amount_ingredient',
+                                    )
     amount = models.PositiveSmallIntegerField(
         verbose_name='Количество ингредиента',
         validators=(
