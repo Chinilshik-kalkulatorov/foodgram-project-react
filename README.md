@@ -38,9 +38,9 @@ docker-compose exec backend python manage.py collectstatic --no-input
 docker-compose exec backend python manage.py importcsv
 docker-compose exec backend python manage.py createsuperuser
 ```
+Доступ к админ-панели
 
 ```bash
-Доступ к админ-панели
 Для доступа к админ-панели перейдите по адресу http://84.201.162.233:81/admin и используйте учетные данные суперпользователя.
 ```
 
