@@ -96,6 +96,15 @@ class RecipeSerializer(ModelSerializer):
                   'is_favorited', 'is_in_shopping_cart',
                   'name', 'image', 'text', 'cooking_time')
 
+    def create(self, validated_data):
+        ingredients_data = validated_data.pop('ingredients')
+        recipe = Recipe.objects.create(**validated_data)
+        for ingredient_data in ingredients_data:
+            ReadIngredientsInRecipeSerializer.objects.create(recipe=recipe,
+                                                             **ingredient_data)
+        recipe.save()
+        return recipe
+
     def get_is_in_shopping_cart(self, obj):
         user = self.context.get('request').user
         if user.is_authenticated:
