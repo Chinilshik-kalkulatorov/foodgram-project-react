@@ -13,7 +13,7 @@ from recipes.models import (AmountIngredient, Favorite, Ingredient, Recipe,
                             ShoppingCart, Tag)
 from .filters import IngredientSearchFilter, RecipesFilter
 from .pagination import LimitPagePagination
-from .permissions import AdminOrAuthor, AdminOrReadOnly
+from .permissions import AdminOrReadOnly
 from .serializers import (IngredientSerializer, RecipeCreateSerializer,
                           RecipeForSubscriptionersSerializer, RecipeSerializer,
                           SubscriptionSerializer, TagSerializer,
@@ -83,7 +83,7 @@ class IngredientViewSet(viewsets.ModelViewSet):
 class RecipeViewSet(viewsets.ModelViewSet):
     """Вьюсет для рецептов."""
     queryset = Recipe.objects.all()
-    permission_classes = (AdminOrAuthor,)
+    permission_classes = (AdminOrReadOnly,)
     pagination_class = LimitPagePagination
     filter_backends = (DjangoFilterBackend,)
     filterset_class = RecipesFilter
@@ -124,10 +124,13 @@ class RecipeViewSet(viewsets.ModelViewSet):
                 'ingredients__name',
                 'ingredients__measurement_unit').annotate(
                     total_amount=Sum('amount'))
+
+        unique_recipes_count = ShoppingCart.objects.filter(user=user).count()
+
         data = ingredients.values_list('ingredients__name',
                                        'ingredients__measurement_unit',
                                        'total_amount')
-        shopping_cart = 'Список покупок:\n'
+        shopping_cart = f'Список покупок ({unique_recipes_count} рецептов):\n'
         for name, measure, amount in data:
             shopping_cart += (f'{name.capitalize()} {amount} {measure},\n')
         response = HttpResponse(shopping_cart, content_type='text/plain')
