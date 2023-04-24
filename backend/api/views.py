@@ -67,17 +67,29 @@ class TagViewSet(viewsets.ModelViewSet):
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
     pagination_class = None
-    permission_classes = (AdminOrReadOnly, AdminOrAuthor)
+
+    def get_permissions(self):
+        if self.action in ['create', 'update', 'partial_update', 'destroy']:
+            self.permission_classes = [AdminOrAuthor]
+        else:
+            self.permission_classes = [AllowAny]
+        return [permission() for permission in self.permission_classes]
 
 
 class IngredientViewSet(viewsets.ModelViewSet):
     """Вьюсет для модели ингредиентов."""
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
-    permission_classes = (AdminOrAuthor, AdminOrAuthor)
     pagination_class = None
     filter_backends = (IngredientSearchFilter,)
     search_fields = ('^name',)
+
+    def get_permissions(self):
+        if self.action in ['create', 'update', 'partial_update', 'destroy']:
+            self.permission_classes = [AdminOrAuthor]
+        else:
+            self.permission_classes = [AllowAny]
+        return [permission() for permission in self.permission_classes]
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
