@@ -13,7 +13,7 @@ from recipes.models import (AmountIngredient, Favorite, Ingredient, Recipe,
                             ShoppingCart, Tag)
 from .filters import IngredientSearchFilter, RecipesFilter
 from .pagination import LimitPagePagination
-from .permissions import AdminOrReadOnly
+from .permissions import AdminOrAuthor, AdminOrReadOnly, AuthorOrReadOnly
 from .serializers import (IngredientSerializer, RecipeCreateSerializer,
                           RecipeForSubscriptionersSerializer, RecipeSerializer,
                           SubscriptionSerializer, TagSerializer,
@@ -67,14 +67,14 @@ class TagViewSet(viewsets.ModelViewSet):
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
     pagination_class = None
-    permission_classes = (AdminOrReadOnly,)
+    permission_classes = (AdminOrReadOnly, AdminOrAuthor)
 
 
 class IngredientViewSet(viewsets.ModelViewSet):
     """Вьюсет для модели ингредиентов."""
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
-    permission_classes = (AdminOrReadOnly,)
+    permission_classes = (AdminOrAuthor, AdminOrAuthor)
     pagination_class = None
     filter_backends = (IngredientSearchFilter,)
     search_fields = ('^name',)
@@ -83,7 +83,7 @@ class IngredientViewSet(viewsets.ModelViewSet):
 class RecipeViewSet(viewsets.ModelViewSet):
     """Вьюсет для рецептов."""
     queryset = Recipe.objects.all()
-    permission_classes = (AdminOrReadOnly,)
+    permission_classes = (AdminOrReadOnly, AdminOrAuthor, AuthorOrReadOnly)
     pagination_class = LimitPagePagination
     filter_backends = (DjangoFilterBackend,)
     filterset_class = RecipesFilter
@@ -124,14 +124,16 @@ class RecipeViewSet(viewsets.ModelViewSet):
                 'ingredients__name',
                 'ingredients__measurement_unit').annotate(
                     total_amount=Sum('amount'))
-
-        unique_recipes_count = ShoppingCart.objects.filter(user=user).count()
-
         data = ingredients.values_list('ingredients__name',
                                        'ingredients__measurement_unit',
                                        'total_amount')
-        shopping_cart = f'Список покупок ({unique_recipes_count} рецептов):\n'
+        shopping_cart = 'Список покупок:\n'
+
+        recipe_count = user.shopping_cart.count()
+
         for name, measure, amount in data:
-            shopping_cart += (f'{name.capitalize()} {amount} {measure},\n')
+            shopping_cart += (f'{name.capitalize()} {amount} {measure}\n')
+
+        shopping_cart = f'Всего рецептов: {recipe_count}\n\n{shopping_cart}'
         response = HttpResponse(shopping_cart, content_type='text/plain')
         return response
