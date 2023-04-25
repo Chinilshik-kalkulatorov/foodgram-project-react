@@ -13,7 +13,7 @@ from recipes.models import (AmountIngredient, Favorite, Ingredient, Recipe,
                             ShoppingCart, Tag)
 from .filters import IngredientSearchFilter, RecipesFilter
 from .pagination import LimitPagePagination
-from .permissions import AdminOrAuthor, AdminOrReadOnly
+from .permissions import AdminOrAuthor, AdminOrReadOnly, AuthorOrReadOnly
 from .serializers import (IngredientSerializer, RecipeCreateSerializer,
                           RecipeForSubscriptionersSerializer, RecipeSerializer,
                           SubscriptionSerializer, TagSerializer,
@@ -83,7 +83,7 @@ class IngredientViewSet(viewsets.ModelViewSet):
 class RecipeViewSet(viewsets.ModelViewSet):
     """Вьюсет для рецептов."""
     queryset = Recipe.objects.all()
-    permission_classes = (AdminOrAuthor,)
+    permission_classes = (AuthorOrReadOnly,)
     pagination_class = LimitPagePagination
     filter_backends = (DjangoFilterBackend,)
     filterset_class = RecipesFilter

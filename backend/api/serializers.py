@@ -61,7 +61,7 @@ class IngredientSerializer(ModelSerializer):
 
 class IngredientCreateSerializer(ModelSerializer):
 
-    id = IntegerField()
+    id = IntegerField(read_only=False)
 
     class Meta:
         model = AmountIngredient
@@ -127,20 +127,21 @@ class RecipeCreateSerializer(ModelSerializer):
                   'image', 'name', 'text',
                   'cooking_time', 'author')
 
-    @staticmethod
-    def create_ingredients(ingredients, recipe):
-        for ingredient in ingredients:
-            amount = ingredient['amount']
-            if AmountIngredient.objects.filter(
-                    recipe=recipe,
-                    ingredients=get_object_or_404(
-                        Ingredient, id=ingredient['id'])).exists():
-                amount += F('amount')
-            AmountIngredient.objects.update_or_create(
-                recipe=recipe,
-                ingredients=get_object_or_404(
-                    Ingredient, id=ingredient['id']),
-                defaults={'amount': amount})
+    # @staticmethod
+    # def create_ingredients(ingredients, recipe):
+    #     print("Create ingredients: ", ingredients)
+    #     for ingredient in ingredients:
+    #         amount = ingredient['amount']
+    #         if AmountIngredient.objects.filter(
+    #                 recipe=recipe,
+    #                 ingredients=get_object_or_404(
+    #                     Ingredient, id=ingredient['id'])).exists():
+    #             amount += F('amount')
+    #         AmountIngredient.objects.update_or_create(
+    #             recipe=recipe,
+    #             ingredients=get_object_or_404(
+    #                 Ingredient, id=ingredient['id']),
+    #             defaults={'amount': amount})
 
     def create(self, validated_data):
         tags_data = validated_data.pop('tags')
@@ -148,8 +149,19 @@ class RecipeCreateSerializer(ModelSerializer):
         image = validated_data.pop('image')
         recipe = Recipe.objects.create(image=image,
                                        **validated_data)
-        self.create_ingredients(ingredients_data, recipe)
+        # self.create_ingredients(ingredients_data, recipe)
+
         recipe.tags.set(tags_data)
+        ingredients_list = [
+            AmountIngredient(
+                recipe=recipe,
+                ingredients=get_object_or_404(Ingredient, id=ingredient['id']),
+                amount=ingredient.get('amount')
+            )
+            for ingredient in ingredients_data
+        ]
+        AmountIngredient.objects.bulk_create(ingredients_list)
+
         return recipe
 
     def update(self, recipe, validated_data):
@@ -166,23 +178,38 @@ class RecipeCreateSerializer(ModelSerializer):
             context={'request': self.context.get('request')}).data
         return data
 
+    def validate_ingredients(self, data):
+        ingredient_data = self.initial_data.get('ingredients')
+        if ingredient_data:
+            checked_ingredients = set()
+            for ingredient in ingredient_data:
+                ingredient_obj = get_object_or_404(
+                    Ingredient, id=ingredient['id']
+                )
+                if ingredient_obj in checked_ingredients:
+                    raise ValidationError('дубликат ингредиента')
+                checked_ingredients.add(ingredient_obj)
+        return ingredient_data
+
     def validate_cooking_time(self, cooking_time):
         if cooking_time <= 0:
             raise ValidationError('Время приготовления должно быть больше 0')
         return cooking_time
 
-    def validate_ingredients(self, ingredients):
-        ingredients_ids = [ingredient.get('id') for ingredient in ingredients]
+    # def validate_ingredients(self, ingredients):
+    #     print("Ingredients in validation: ", ingredients)
+    #     raise NotImplementedError
+    #     ingredients_ids = [ingredient.get('id') for ingredient in ingredients]
 
-        for ingredient in ingredients:
-            if int(ingredient['amount']) <= 0:
-                raise ValidationError(
-                    'Количество ингредиентов должно быть больше 0')
+    #     for ingredient in ingredients:
+    #         if int(ingredient['amount']) <= 0:
+    #             raise ValidationError(
+    #                 'Количество ингредиентов должно быть больше 0')
 
-        if len(ingredients_ids) != len(set(ingredients_ids)):
-            raise ValidationError('Список ингредиентов содержит дубликаты')
+    #     if len(ingredients_ids) != len(set(ingredients_ids)):
+    #         raise ValidationError('Список ингредиентов содержит дубликаты')
 
-        return ingredients
+    #     return ingredients
 
 
 class RecipeForSubscriptionersSerializer(ModelSerializer):
