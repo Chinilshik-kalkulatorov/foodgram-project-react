@@ -67,23 +67,39 @@ class TagViewSet(viewsets.ModelViewSet):
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
     pagination_class = None
-    permission_classes = (AdminOrReadOnly,)
+
+    def get_permissions(self):
+        if self.action in ['create', 'update', 'partial_update', 'destroy']:
+            self.permission_classes = [AdminOrAuthor]
+        else:
+            self.permission_classes = [AllowAny]
+        return [permission() for permission in self.permission_classes]
 
 
 class IngredientViewSet(viewsets.ModelViewSet):
     """Вьюсет для модели ингредиентов."""
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
-    permission_classes = (AdminOrReadOnly,)
     pagination_class = None
     filter_backends = (IngredientSearchFilter,)
     search_fields = ('^name',)
+
+    def get_permissions(self):
+        if self.action in ['create', 'update', 'partial_update', 'destroy']:
+            self.permission_classes = [AdminOrAuthor]
+        else:
+            self.permission_classes = [AllowAny]
+        return [permission() for permission in self.permission_classes]
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
     """Вьюсет для рецептов."""
     queryset = Recipe.objects.all()
+<<<<<<< HEAD
     permission_classes = (AuthorOrReadOnly,)
+=======
+    permission_classes = (AdminOrReadOnly, AdminOrAuthor, AuthorOrReadOnly)
+>>>>>>> 75d79f6d3b5856232f8b8536e70556bf0fffbd7c
     pagination_class = LimitPagePagination
     filter_backends = (DjangoFilterBackend,)
     filterset_class = RecipesFilter
@@ -128,7 +144,12 @@ class RecipeViewSet(viewsets.ModelViewSet):
                                        'ingredients__measurement_unit',
                                        'total_amount')
         shopping_cart = 'Список покупок:\n'
+
+        recipe_count = user.shopping_cart.count()
+
         for name, measure, amount in data:
-            shopping_cart += (f'{name.capitalize()} {amount} {measure},\n')
+            shopping_cart += (f'{name.capitalize()} {amount} {measure}\n')
+
+        shopping_cart = f'Всего рецептов: {recipe_count}\n\n{shopping_cart}'
         response = HttpResponse(shopping_cart, content_type='text/plain')
         return response

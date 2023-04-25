@@ -84,7 +84,7 @@ class ReadIngredientsInRecipeSerializer(ModelSerializer):
 class RecipeSerializer(ModelSerializer):
 
     author = UsersSerializer(read_only=True)
-    ingredients = ReadIngredientsInRecipeSerializer(many=True)
+    ingredients = IngredientCreateSerializer(many=True)
     tags = TagSerializer(many=True)
     is_in_shopping_cart = SerializerMethodField()
     is_favorited = SerializerMethodField()
@@ -96,6 +96,15 @@ class RecipeSerializer(ModelSerializer):
                   'is_favorited', 'is_in_shopping_cart',
                   'name', 'image', 'text', 'cooking_time')
 
+    def create(self, validated_data):
+        ingredients_data = validated_data.pop('ingredients')
+        recipe = Recipe.objects.create(**validated_data)
+        for ingredient_data in ingredients_data:
+            ReadIngredientsInRecipeSerializer.objects.create(recipe=recipe,
+                                                             **ingredient_data)
+        recipe.save()
+        return recipe
+
     def get_is_in_shopping_cart(self, obj):
         user = self.context.get('request').user
         if user.is_authenticated:
@@ -104,8 +113,9 @@ class RecipeSerializer(ModelSerializer):
         return False
 
     def get_is_favorited(self, obj):
-        user = self.context.get('request').user
-        if user.is_authenticated or self.context.get('request') is not None:
+        request = self.context.get('request')
+        if request and request.user.is_authenticated:
+            user = request.user
             return Favorite.objects.filter(
                 user=user, recipe=obj).exists()
         return False
