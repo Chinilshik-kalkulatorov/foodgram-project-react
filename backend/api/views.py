@@ -95,11 +95,7 @@ class IngredientViewSet(viewsets.ModelViewSet):
 class RecipeViewSet(viewsets.ModelViewSet):
     """Вьюсет для рецептов."""
     queryset = Recipe.objects.all()
-<<<<<<< HEAD
-    permission_classes = (AuthorOrReadOnly,)
-=======
     permission_classes = (AdminOrReadOnly, AdminOrAuthor, AuthorOrReadOnly)
->>>>>>> 75d79f6d3b5856232f8b8536e70556bf0fffbd7c
     pagination_class = LimitPagePagination
     filter_backends = (DjangoFilterBackend,)
     filterset_class = RecipesFilter
