@@ -7,12 +7,12 @@ from recipes.models import Recipe
 class RecipesFilter(FilterSet):
 
     tags = AllValuesMultipleFilter(field_name='tags__slug', label='tags')
-    favorite = BooleanFilter(method='get_favorite')
-    shopping_cart = BooleanFilter(method='get_shopping_cart')
+    is_favorited = BooleanFilter(method='get_favorite')
+    is_in_shopping_cart = BooleanFilter(method='get_shopping_cart')
 
     class Meta:
         model = Recipe
-        fields = ('author', 'tags', 'favorite', 'shopping_cart')
+        fields = ('author', 'tags', 'is_favorited', 'is_in_shopping_cart')
 
     def get_favorite(self, queryset, name, value):
         if value:
