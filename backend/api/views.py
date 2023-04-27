@@ -34,9 +34,9 @@ class UsersViewSet(UserViewSet):
         if self.request.user == Subscriptioner:
             return Response({'message': 'Нельзя подписаться на себя'},
                             status=status.HTTP_400_BAD_REQUEST)
-        Subscription = Subscription.objects.get_or_create(user=self.request.user,
+        subscription = Subscription.objects.get_or_create(user=self.request.user,
                                               author=Subscriptioner)
-        serializer = SubscriptionSerializer(Subscription[0])
+        serializer = SubscriptionSerializer(subscription[0])
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     def unsubscribed(self, serializer, id=None):

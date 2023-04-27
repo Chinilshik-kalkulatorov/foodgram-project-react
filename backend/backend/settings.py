@@ -21,7 +21,7 @@ ALLOWED_HOSTS = os.getenv(
 ).split(',')
 
 CSRF_TRUSTED_ORIGINS = os.getenv(
-        'CSRF_TRUSTED_ORIGINS', default='http://84.201.162.233'
+        'CSRF_TRUSTED_ORIGINS', default='http://84.201.162.233:81'
 ).split(',')
 
 INSTALLED_APPS = [
